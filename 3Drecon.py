@@ -5,7 +5,7 @@ import numpy
 import plotly
 from plotly.graph_objs import *
 
-#función para convertirvtk a numpy
+#................FUNCTIONS DEFINITION.................#
 def vtkImageToNumPy(image, pixelDims):
     pointData = image.GetPointData()
     arrayData = pointData.GetArray(0)
@@ -14,7 +14,7 @@ def vtkImageToNumPy(image, pixelDims):
 
     return ArrayDicom
 
-#Creación de un heatmap de un 2D array
+#Create a 2D heatmap from an array
 def plotHeatmap(array, name="plot"):
     data = Data([
         Heatmap(
@@ -32,10 +32,10 @@ def plotHeatmap(array, name="plot"):
     plot_url = plotly.graph_objs.Figure(fig)
     return plot_url.show()
 
-#Graficación de objeto
+#plot CT slice
 def vtk_show(renderer1,renderer2, width=700, height=700):
     """
-    Proceso para mostar el 3d en vtk
+    3D PLOT
     """
     ren = vtk.vtkRenderer()
     ren.SetBackground(0.0,0.0,0.0)
@@ -53,13 +53,12 @@ def vtk_show(renderer1,renderer2, width=700, height=700):
 
     iren.Initialize()
     iren.Start()
-    #data = memoryview(writer.GetResult()).tobytes()
 
     return #Image(data)
 
-#............READING DICOM FILES..........#
-colors = vtk.vtkNamedColors()
-colors.SetColor("SkinColor", [255, 125, 64, 255])
+#............READING/SORTING/GROUP DICOM FILES..........#
+#colors = vtk.vtkNamedColors()
+#colors.SetColor("SkinColor", [255, 125, 64, 255])
 #Asignación del directorio de lectura para los archivos DICOM
 PathDicom = "./vhm_head/"
 #lectura de archivos dicom
@@ -67,7 +66,7 @@ reader=vtk.vtkDICOMImageReader()
 reader.SetDirectoryName(PathDicom)
 reader.Update()
 
-#................. DICOM dimension image arrengement................#
+#................. DICOM IMAGES DIMENSION ADJUSTMENT................#
 # Load dimensions using `GetDataExtent`
 _extent = reader.GetDataExtent()
 ConstPixelDims = [_extent[1]-_extent[0]+1, _extent[3]-_extent[2]+1, _extent[5]-_extent[4]+1]
@@ -79,21 +78,21 @@ ArrayDicom = vtkImageToNumPy(reader.GetOutput(), ConstPixelDims)
 plotHeatmap(numpy.rot90(ArrayDicom[:, 256, :]), name="CT_Original")
 
 
-#........THRESHOLDING DATA.......#
+#........ HOUNDSFIELD THRESHOLDING DATA.......#
 threshold = vtk.vtkImageThreshold ()
 threshold.SetInputConnection(reader.GetOutputPort())
-threshold.ThresholdByLower(386)  # remove all soft tissue
+threshold.ThresholdByLower(386)  # set value for thresholding
 threshold.ReplaceInOn()
-threshold.SetInValue(0)  # set all values below 400 to 0
+threshold.SetInValue(0)  # set all values below 386 to 0
 threshold.ReplaceOutOn()
-threshold.SetOutValue(1)  # set all values above 400 to 1
+threshold.SetOutValue(1)  # set all values equal or above 386 to 1
 threshold.Update()
-                #......Gráfica de la imagen thresholded.......#
+                #......PLOT THRESHOLDED IMAGE.......#
 ArrayDicom = vtkImageToNumPy(threshold.GetOutput(), ConstPixelDims)
 plotHeatmap(numpy.rot90(ArrayDicom[:, 256, :]), name="CT_Thresholded")
 
 
-#...........3D surface generation.........#
+#...........3D MESH GENERATION.........#
 dmc = vtk.vtkDiscreteMarchingCubes()
 dmc.SetInputConnection(threshold.GetOutputPort())
 dmc.GenerateValues(1, 1, 1)
@@ -104,7 +103,7 @@ mapper.SetInputConnection(dmc.GetOutputPort())
 
 actor = vtk.vtkActor()
 actor.SetMapper(mapper)
-actor.GetProperty().SetColor(255,255,255)#De ser necesario resolver problema con el color
+actor.GetProperty().SetColor(255,255,255)
 
 
 #.......outline.....#
@@ -119,10 +118,10 @@ outline = vtk.vtkActor()
 outline.SetMapper(mapOutline)
 outline.GetProperty().SetColor(colors.GetColor3d("White"))
 
-#mesh plot
+#MESH PLOT
 vtk_show(actor, outline, 600, 600)
 
-#..............save file .stl.............#
+#...............GENERATE .stl FILE.............#
 writer = vtk.vtkSTLWriter()
 writer.SetInputConnection(dmc.GetOutputPort())
 writer.SetFileTypeToBinary()
