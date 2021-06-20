@@ -62,7 +62,7 @@ def vtk_show(renderer1,renderer2, width=700, height=700):
 #colors = vtk.vtkNamedColors()
 #colors.SetColor("SkinColor", [255, 125, 64, 255])
 #Asignación del directorio de lectura para los archivos DICOM
-PathDicom = "./vhm_head/"
+PathDicom = "./CTStudy/"
 #lectura de archivos dicom
 reader=vtk.vtkDICOMImageReader()
 reader.SetDirectoryName(PathDicom)
