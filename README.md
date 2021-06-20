@@ -1,6 +1,6 @@
 # 3D Skull-reconstruction
 
-##A Python algorithm based on image segmentation by Hounsfield's threshold to generate a 3-Dimensional skull model.
+## A Python algorithm based on image segmentation by Hounsfield's threshold to generate a 3-Dimensional skull model.
 
 The process has three phases, sorting, thresholding, and mesh smoothing. The three first steps used the VTK library for python, and for the last, you could use MeshLab, or your preferred software for mesh processing. Finally, a smoothed STL model is gotten.
 
