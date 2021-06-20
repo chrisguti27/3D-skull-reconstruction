@@ -1,3 +1,5 @@
+# Thanks to the research of https://pyscience.wordpress.com/2014/09/11/surface-extraction-creating-a-mesh-from-pixel-data-using-python-and-vtk/ #
+
 import vtk
 from vtk.util import numpy_support
 import os
